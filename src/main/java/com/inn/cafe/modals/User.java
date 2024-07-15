@@ -1,11 +1,12 @@
 package com.inn.cafe.modals;
 
-import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Generated;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.NamedQuery;
 
+import javax.persistence.*;
 import java.io.Serializable;
 
 // when email id is passed, it will return the user
