@@ -8,8 +8,11 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serializable;
 
+// when email id is passed, it will return the user
+@NamedQuery(name = "User.findByEmailId", query = "select u from User u where u.email=:email")
+
 @Data
-//takes care of the getter and setters for these properties
+//takes care of the getter and setters for these properties ^^
 //prevents boilerplate code
 @Entity
 @DynamicUpdate
@@ -42,8 +45,5 @@ public class User implements Serializable {
 
     @Column(name = "role")
     private String role;
-
-
-
 
 }
