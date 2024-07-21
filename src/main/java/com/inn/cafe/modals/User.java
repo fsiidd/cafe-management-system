@@ -12,6 +12,8 @@ import java.io.Serializable;
 // when email id is passed, it will return the user
 @NamedQuery(name = "User.findByEmailId", query = "select u from User u where u.email=:email")
 @NamedQuery(name = "User.getAllUser", query = "select new com.inn.cafe.wrapper.UserWrapper(u.id, u.name, u.email, u.contactNumber, u.status) from User u where u.role='user'")
+@NamedQuery(name = "User.updateStatus", query = "update User u set u.status=:status where u.id=:id")
+@NamedQuery(name = "User.getAllAdmin", query = "select u.email from User u where u.role='admin'")
 
 @Data
 //takes care of the getter and setters for these properties ^^

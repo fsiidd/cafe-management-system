@@ -8,6 +8,7 @@ import com.inn.cafe.dao.UserDao;
 import com.inn.cafe.modals.User;
 import com.inn.cafe.service.UserService;
 import com.inn.cafe.utils.CafeUtils;
+import com.inn.cafe.utils.EmailUtils;
 import com.inn.cafe.wrapper.UserWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     JWTFilter jwtFilter;
+
+    @Autowired
+    EmailUtils emailUtils;
 
     /**
      * Registers a new user based on the data provided in the requestMap.
@@ -140,4 +144,49 @@ public class UserServiceImpl implements UserService {
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    /**
+     * Updates the status of a user based on the provided request map.
+     *
+     * @param requestMap A map containing the user's ID and the new status.
+     * @return ResponseEntity<String> indicating the result of the update operation.
+     */
+    @Override
+    public ResponseEntity<String> update(Map<String, String> requestMap) {
+        try {
+            // Check if the current user is authenticated as a "user"
+            if (jwtFilter.isAdmin()) {
+                // Attempt to retrieve the user by ID from the database
+                Optional<User> optional = userDao.findById(Integer.parseInt(requestMap.get("id")));
+
+                // Check if the user with the given ID exists
+                if (optional.isPresent()) {
+                    // Update the user's status in the database
+                    userDao.updateStatus(requestMap.get("status"), Integer.parseInt(requestMap.get("id")));
+                    sendMailToAllAdmin(requestMap.get("status"), optional.get().getEmail(), userDao.getAllAdmin());
+                    return CafeUtils.getResponseEntity("User status updated successfully", HttpStatus.OK);
+                } else {
+                    return CafeUtils.getResponseEntity("User ID does not exist", HttpStatus.OK);
+                }
+            } else {
+                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception ex) {
+            // Print the stack trace for debugging purposes
+            ex.printStackTrace();
+        }
+
+        // Return a response indicating an internal server error if an exception is thrown
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private void sendMailToAllAdmin(String status, String user, List<String> allAdmin) {
+        allAdmin.remove(jwtFilter.getCurrentUser());
+        if (status != null && status.equalsIgnoreCase("true")) {
+            emailUtils.sendSimpleMessage(jwtFilter.getCurrentUser(), "Account Approved", "USER:- " + user + " \n is approved by \nADMIN: - " + jwtFilter.getCurrentUser(), allAdmin);
+        } else {
+            emailUtils.sendSimpleMessage(jwtFilter.getCurrentUser(), "Account Disabled", "USER:- " + user + " \n is disabled by \nADMIN: - " + jwtFilter.getCurrentUser(), allAdmin);
+        }
+    }
+
 }
