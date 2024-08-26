@@ -20,4 +20,5 @@ public interface UserService {
 
     ResponseEntity<String> changePassword(Map<String, String> reqestMap);
 
+    ResponseEntity<String> forgotPassword(Map<String, String> requestMap);
 }
